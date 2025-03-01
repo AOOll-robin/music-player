@@ -221,45 +221,73 @@ input[type="range"]::-webkit-slider-thumb {
     transition: height 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .lyrics-container.active {
-    height: 200px;
-    overflow-y: auto;
+    height: 150px;
+    overflow: hidden;
 }
 
 .lyrics-text {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     line-height: 1.7;
     color: white;
     text-align: center;
+    width: 100%;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .lyrics-line {
-    margin: 10px 0;
-    opacity: 0.7;
-    transition: all 0.3s ease;
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%) scale(0.8);
+    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    margin: 0;
+    padding: 0 10px;
+    text-align: center;
+    pointer-events: none;
 }
 
 .lyrics-line.active {
     opacity: 1;
+    transform: translateY(-50%) scale(1);
     font-weight: bold;
-    font-size: 1.2rem;
     color: #e66465;
-    text-shadow: 0 0 5px rgba(230, 100, 101, 0.5);
+    text-shadow: 0 0 10px rgba(230, 100, 101, 0.3);
+}
+
+.lyrics-line.prev,
+.lyrics-line.next {
+    opacity: 0.3;
+    font-size: 0.8rem;
+}
+
+.lyrics-line.prev {
+    transform: translateY(-120%) scale(0.9);
+}
+
+.lyrics-line.next {
+    transform: translateY(20%) scale(0.9);
 }
 
 /* 媒体查询，确保在移动设备上正确显示 */
 @media screen and (max-width: 768px) {
     .lyrics-container.active {
-        height: 150px;
+        height: 120px;
     }
     
     .lyrics-text {
         font-size: 1rem;
-    }
-    
-    .lyrics-line.active {
-        font-size: 1.1rem;
     }
 } 

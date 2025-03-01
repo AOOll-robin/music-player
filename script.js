@@ -166,6 +166,62 @@ document.addEventListener('DOMContentLoaded', function() {
         ensureVisualization();
     }
     
+    // 更新当前歌词
+    function updateLyrics() {
+        if (!lyrics || lyrics.length === 0) return;
+        
+        const currentTime = audio.currentTime;
+        let foundIndex = -1;
+        
+        // 找到当前时间对应的歌词
+        for (let i = lyrics.length - 1; i >= 0; i--) {
+            if (currentTime >= lyrics[i][0]) {
+                foundIndex = i;
+                break;
+            }
+        }
+        
+        // 如果歌词索引变化，更新显示
+        if (foundIndex !== currentLyricIndex && foundIndex !== -1) {
+            // 更新显示歌词的类
+            updateLyricClasses(foundIndex);
+            
+            // 更新当前歌词索引
+            currentLyricIndex = foundIndex;
+        }
+    }
+
+    // 更新歌词类，添加前一行和后一行的标记
+    function updateLyricClasses(newIndex) {
+        // 清除所有特殊类
+        const allLines = lyricsText.querySelectorAll('.lyrics-line');
+        allLines.forEach(line => {
+            line.classList.remove('active', 'prev', 'next');
+        });
+        
+        // 设置当前行
+        const currentLine = lyricsText.querySelector(`[data-index="${newIndex}"]`);
+        if (currentLine) {
+            currentLine.classList.add('active');
+        }
+        
+        // 设置前一行
+        if (newIndex > 0) {
+            const prevLine = lyricsText.querySelector(`[data-index="${newIndex - 1}"]`);
+            if (prevLine) {
+                prevLine.classList.add('prev');
+            }
+        }
+        
+        // 设置后一行
+        if (newIndex < lyrics.length - 1) {
+            const nextLine = lyricsText.querySelector(`[data-index="${newIndex + 1}"]`);
+            if (nextLine) {
+                nextLine.classList.add('next');
+            }
+        }
+    }
+
     // 初始化歌词显示
     function initLyrics() {
         if (!lyrics || lyrics.length === 0) {
@@ -188,50 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 重置当前歌词索引
         currentLyricIndex = -1;
-    }
-    
-    // 更新当前歌词
-    function updateLyrics() {
-        if (!lyrics || lyrics.length === 0) return;
-        
-        const currentTime = audio.currentTime;
-        let foundIndex = -1;
-        
-        // 找到当前时间对应的歌词
-        for (let i = lyrics.length - 1; i >= 0; i--) {
-            if (currentTime >= lyrics[i][0]) {
-                foundIndex = i;
-                break;
-            }
-        }
-        
-        // 如果歌词索引变化，更新显示
-        if (foundIndex !== currentLyricIndex && foundIndex !== -1) {
-            // 移除上一个激活的歌词样式
-            const prevActiveLyric = lyricsText.querySelector('.lyrics-line.active');
-            if (prevActiveLyric) {
-                prevActiveLyric.classList.remove('active');
-            }
-            
-            // 添加新的激活歌词样式
-            const newActiveLyric = lyricsText.querySelector(`[data-index="${foundIndex}"]`);
-            if (newActiveLyric) {
-                newActiveLyric.classList.add('active');
-                
-                // 滚动到当前歌词
-                if (lyricsContainer.classList.contains('active')) {
-                    const containerHeight = lyricsContainer.clientHeight;
-                    const lineTop = newActiveLyric.offsetTop;
-                    const lineHeight = newActiveLyric.offsetHeight;
-                    
-                    // 滚动到歌词位置，使其在容器中间
-                    lyricsContainer.scrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
-                }
-            }
-            
-            // 更新当前歌词索引
-            currentLyricIndex = foundIndex;
-        }
     }
 
     // 初始化界面
@@ -318,16 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (lyricsContainer.classList.contains('active')) {
             lyricsToggle.innerHTML = '<i class="fas fa-times"></i> 隐藏歌词';
             
-            // 滚动到当前歌词
+            // 确保当前歌词显示正确
             if (currentLyricIndex >= 0) {
-                const currentLine = lyricsText.querySelector(`[data-index="${currentLyricIndex}"]`);
-                if (currentLine) {
-                    const containerHeight = lyricsContainer.clientHeight;
-                    const lineTop = currentLine.offsetTop;
-                    const lineHeight = currentLine.offsetHeight;
-                    
-                    lyricsContainer.scrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
-                }
+                updateLyricClasses(currentLyricIndex);
             }
         } else {
             lyricsToggle.innerHTML = '<i class="fas fa-align-left"></i> 显示歌词';
