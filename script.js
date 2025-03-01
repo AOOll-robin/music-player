@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 文本转SVG路径
+    // 文本转SVG路径 - 简化版不依赖外部库
     function textToPath(text, x, y) {
         // 创建一个SVG元素
         const svgNS = "http://www.w3.org/2000/svg";
@@ -204,14 +204,27 @@ document.addEventListener('DOMContentLoaded', function() {
         svg.setAttribute("height", "100%");
         svg.setAttribute("viewBox", "0 0 300 60");
         
-        // 创建文本路径
-        const textPath = document.createElementNS(svgNS, "text");
-        textPath.setAttribute("x", x);
-        textPath.setAttribute("y", y);
-        textPath.setAttribute("class", "apple-drawing-text");
-        textPath.textContent = text;
+        // 创建文本元素（不是路径，简化实现）
+        const textElement = document.createElementNS(svgNS, "text");
+        textElement.setAttribute("x", x);
+        textElement.setAttribute("y", y);
+        textElement.setAttribute("class", "apple-drawing-text");
+        textElement.setAttribute("font-size", "18px");
+        textElement.setAttribute("font-family", "'微软雅黑', 'Microsoft YaHei', Arial, sans-serif");
         
-        svg.appendChild(textPath);
+        // 把文本分成单个字符，便于动画
+        [...text].forEach((char, i) => {
+            const tspan = document.createElementNS(svgNS, "tspan");
+            tspan.textContent = char;
+            tspan.setAttribute("dx", i === 0 ? "0" : "2"); // 字符间距
+            textElement.appendChild(tspan);
+        });
+        
+        svg.appendChild(textElement);
+        
+        // 调试信息
+        console.log('创建SVG文本元素:', {text, elements: textElement.childNodes.length});
+        
         return svg;
     }
 
@@ -263,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化手绘歌词显示
     function initDrawingLyrics() {
-        console.log('初始化手绘歌词');
+        console.log('初始化手绘歌词，歌词数量:', lyrics.length);
         
         // 添加每行歌词
         lyrics.forEach((line, index) => {
@@ -275,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container.dataset.time = line[0];
             container.dataset.index = index;
             
-            // 创建SVG文本路径
+            // 创建SVG文本元素
             const svg = textToPath(line[1], 150, 30);
             container.appendChild(svg);
             
@@ -285,6 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 更新歌词类，添加前一行和后一行的标记
     function updateLyricClasses(newIndex) {
+        console.log('更新歌词类，索引:', newIndex, '手绘模式:', drawingModeEnabled);
         // 清除所有特殊类
         const allLines = lyricsText.querySelectorAll('.lyrics-line');
         allLines.forEach(line => {
@@ -295,6 +309,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const textPath = line.querySelector('.apple-drawing-text');
                 if (textPath) {
                     textPath.classList.remove('active', 'prev', 'next');
+                    console.log('移除类:', line.dataset.index);
+                } else {
+                    console.warn('未找到SVG文本元素:', line.dataset.index);
                 }
             }
         });
@@ -303,11 +320,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentLine = lyricsText.querySelector(`[data-index="${newIndex}"]`);
         if (currentLine) {
             currentLine.classList.add('active');
+            console.log('当前行索引:', newIndex);
             
             // 如果是手绘模式，还需要更新SVG文本的类
             if (drawingModeEnabled) {
                 const textPath = currentLine.querySelector('.apple-drawing-text');
                 if (textPath) {
+                    console.log('添加active类到SVG文本:', newIndex);
                     textPath.classList.add('active');
                 }
             }
@@ -323,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (drawingModeEnabled) {
                     const textPath = prevLine.querySelector('.apple-drawing-text');
                     if (textPath) {
+                        console.log('添加prev类到SVG文本:', newIndex - 1);
                         textPath.classList.add('prev');
                     }
                 }
@@ -339,6 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (drawingModeEnabled) {
                     const textPath = nextLine.querySelector('.apple-drawing-text');
                     if (textPath) {
+                        console.log('添加next类到SVG文本:', newIndex + 1);
                         textPath.classList.add('next');
                     }
                 }
@@ -446,6 +467,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 切换手绘模式
     function toggleDrawingMode() {
+        console.log('切换手绘模式，当前状态:', drawingModeEnabled);
         drawingModeEnabled = !drawingModeEnabled;
         
         if (drawingModeEnabled) {
@@ -466,6 +488,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // 如果已经显示歌词，更新当前歌词行
         if (currentLyricIndex >= 0) {
             updateLyricClasses(currentLyricIndex);
+        } else if (lyrics && lyrics.length > 0) {
+            // 确保至少显示第一行
+            updateLyricClasses(0);
         }
     }
 
