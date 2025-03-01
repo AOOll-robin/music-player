@@ -183,4 +183,83 @@ input[type="range"]::-webkit-slider-thumb {
     background: #e66465;
     border-radius: 50%;
     cursor: pointer;
+}
+
+/* 歌词相关样式 */
+.lyrics-button {
+    background: linear-gradient(to right, #e66465, #9198e5);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.lyrics-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+.lyrics-button i {
+    font-size: 0.8rem;
+}
+
+.lyrics-container {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.lyrics-container.active {
+    height: 200px;
+    overflow-y: auto;
+}
+
+.lyrics-text {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: white;
+    text-align: center;
+}
+
+.lyrics-line {
+    margin: 10px 0;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.lyrics-line.active {
+    opacity: 1;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #e66465;
+    text-shadow: 0 0 5px rgba(230, 100, 101, 0.5);
+}
+
+/* 媒体查询，确保在移动设备上正确显示 */
+@media screen and (max-width: 768px) {
+    .lyrics-container.active {
+        height: 150px;
+    }
+    
+    .lyrics-text {
+        font-size: 1rem;
+    }
+    
+    .lyrics-line.active {
+        font-size: 1.1rem;
+    }
 } 

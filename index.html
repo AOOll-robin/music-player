@@ -19,12 +19,22 @@
             <div class="song-details">
                 <h2 id="title">歌曲名称</h2>
                 <p id="artist">歌手名称</p>
+                
+                <!-- 歌词显示开关按钮 -->
+                <button id="lyrics-toggle" class="lyrics-button">
+                    <i class="fas fa-align-left"></i> 显示歌词
+                </button>
             </div>
         </div>
         
         <!-- 音频可视化区域 -->
         <div class="visualizer-container">
             <canvas id="visualizer"></canvas>
+        </div>
+        
+        <!-- 歌词显示区域 -->
+        <div id="lyrics-container" class="lyrics-container">
+            <div id="lyrics-text" class="lyrics-text"></div>
         </div>
         
         <div class="controls">
@@ -47,6 +57,9 @@
         </div>
     </div>
 
+    <!-- 先加载歌词数据 -->
+    <script src="assets/lyrics.js"></script>
+    <!-- 再加载主脚本 -->
     <script src="script.js"></script>
 </body>
 </html> 
