@@ -224,8 +224,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化歌词显示
     function initLyrics() {
+        console.log('初始化歌词', window.lyricsData);
+
         if (!lyrics || lyrics.length === 0) {
             console.log('没有找到歌词数据');
+            lyricsText.innerHTML = '<div class="lyrics-line active">暂无歌词数据</div>';
             return;
         }
         
@@ -234,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 添加每行歌词
         lyrics.forEach((line, index) => {
+            console.log(`添加歌词行: ${index}`, line);
             const div = document.createElement('div');
             div.textContent = line[1];
             div.className = 'lyrics-line';
@@ -244,6 +248,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 重置当前歌词索引
         currentLyricIndex = -1;
+        
+        // 确保至少有一个可见的歌词行
+        setTimeout(() => {
+            if (currentLyricIndex === -1 && lyrics.length > 0) {
+                updateLyricClasses(0);
+            }
+        }, 500);
     }
 
     // 初始化界面
@@ -325,6 +336,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 切换歌词显示
     function toggleLyrics() {
+        console.log('切换歌词显示');
         lyricsContainer.classList.toggle('active');
         
         if (lyricsContainer.classList.contains('active')) {
@@ -332,7 +344,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // 确保当前歌词显示正确
             if (currentLyricIndex >= 0) {
+                console.log('显示当前歌词', currentLyricIndex);
                 updateLyricClasses(currentLyricIndex);
+            } else if (lyrics && lyrics.length > 0) {
+                console.log('显示第一行歌词');
+                updateLyricClasses(0);
             }
         } else {
             lyricsToggle.innerHTML = '<i class="fas fa-align-left"></i> 显示歌词';
