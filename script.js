@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let visualizerActive = false; // 标记可视化是否已激活
     let lastResumeTime = 0; // 记录上次恢复时间，防止频繁触发
 
+    // 新增全局变量
+    let drawingModeEnabled = false; // 是否启用手绘模式
+    const drawingModeToggle = document.getElementById('drawing-mode-toggle');
+
     // 设置Canvas大小
     function setupCanvas() {
         canvas.width = canvas.clientWidth;
@@ -191,41 +195,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 更新歌词类，添加前一行和后一行的标记
-    function updateLyricClasses(newIndex) {
-        // 清除所有特殊类
-        const allLines = lyricsText.querySelectorAll('.lyrics-line');
-        allLines.forEach(line => {
-            line.classList.remove('active', 'prev', 'next');
-        });
+    // 文本转SVG路径
+    function textToPath(text, x, y) {
+        // 创建一个SVG元素
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "100%");
+        svg.setAttribute("height", "100%");
+        svg.setAttribute("viewBox", "0 0 300 60");
         
-        // 设置当前行
-        const currentLine = lyricsText.querySelector(`[data-index="${newIndex}"]`);
-        if (currentLine) {
-            currentLine.classList.add('active');
-        }
+        // 创建文本路径
+        const textPath = document.createElementNS(svgNS, "text");
+        textPath.setAttribute("x", x);
+        textPath.setAttribute("y", y);
+        textPath.setAttribute("class", "apple-drawing-text");
+        textPath.textContent = text;
         
-        // 设置前一行
-        if (newIndex > 0) {
-            const prevLine = lyricsText.querySelector(`[data-index="${newIndex - 1}"]`);
-            if (prevLine) {
-                prevLine.classList.add('prev');
-            }
-        }
-        
-        // 设置后一行
-        if (newIndex < lyrics.length - 1) {
-            const nextLine = lyricsText.querySelector(`[data-index="${newIndex + 1}"]`);
-            if (nextLine) {
-                nextLine.classList.add('next');
-            }
-        }
+        svg.appendChild(textPath);
+        return svg;
     }
 
     // 初始化歌词显示
     function initLyrics() {
         console.log('初始化歌词', window.lyricsData);
-
+        
         if (!lyrics || lyrics.length === 0) {
             console.log('没有找到歌词数据');
             lyricsText.innerHTML = '<div class="lyrics-line active">暂无歌词数据</div>';
@@ -235,16 +228,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // 清空歌词容器
         lyricsText.innerHTML = '';
         
-        // 添加每行歌词
-        lyrics.forEach((line, index) => {
-            console.log(`添加歌词行: ${index}`, line);
-            const div = document.createElement('div');
-            div.textContent = line[1];
-            div.className = 'lyrics-line';
-            div.dataset.time = line[0];
-            div.dataset.index = index;
-            lyricsText.appendChild(div);
-        });
+        if (drawingModeEnabled) {
+            // 手绘模式初始化
+            initDrawingLyrics();
+        } else {
+            // 标准模式初始化
+            initStandardLyrics();
+        }
         
         // 重置当前歌词索引
         currentLyricIndex = -1;
@@ -255,6 +245,105 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateLyricClasses(0);
             }
         }, 500);
+    }
+
+    // 初始化标准歌词显示
+    function initStandardLyrics() {
+        // 添加每行歌词
+        lyrics.forEach((line, index) => {
+            console.log(`添加歌词行: ${index}`, line);
+            const div = document.createElement('div');
+            div.textContent = line[1];
+            div.className = 'lyrics-line';
+            div.dataset.time = line[0];
+            div.dataset.index = index;
+            lyricsText.appendChild(div);
+        });
+    }
+
+    // 初始化手绘歌词显示
+    function initDrawingLyrics() {
+        console.log('初始化手绘歌词');
+        
+        // 添加每行歌词
+        lyrics.forEach((line, index) => {
+            console.log(`添加手绘歌词行: ${index}`, line);
+            
+            // 创建一个容器元素
+            const container = document.createElement('div');
+            container.className = 'lyrics-line';
+            container.dataset.time = line[0];
+            container.dataset.index = index;
+            
+            // 创建SVG文本路径
+            const svg = textToPath(line[1], 150, 30);
+            container.appendChild(svg);
+            
+            lyricsText.appendChild(container);
+        });
+    }
+
+    // 更新歌词类，添加前一行和后一行的标记
+    function updateLyricClasses(newIndex) {
+        // 清除所有特殊类
+        const allLines = lyricsText.querySelectorAll('.lyrics-line');
+        allLines.forEach(line => {
+            line.classList.remove('active', 'prev', 'next');
+            
+            // 如果是手绘模式，还需要更新SVG文本的类
+            if (drawingModeEnabled) {
+                const textPath = line.querySelector('.apple-drawing-text');
+                if (textPath) {
+                    textPath.classList.remove('active', 'prev', 'next');
+                }
+            }
+        });
+        
+        // 设置当前行
+        const currentLine = lyricsText.querySelector(`[data-index="${newIndex}"]`);
+        if (currentLine) {
+            currentLine.classList.add('active');
+            
+            // 如果是手绘模式，还需要更新SVG文本的类
+            if (drawingModeEnabled) {
+                const textPath = currentLine.querySelector('.apple-drawing-text');
+                if (textPath) {
+                    textPath.classList.add('active');
+                }
+            }
+        }
+        
+        // 设置前一行
+        if (newIndex > 0) {
+            const prevLine = lyricsText.querySelector(`[data-index="${newIndex - 1}"]`);
+            if (prevLine) {
+                prevLine.classList.add('prev');
+                
+                // 如果是手绘模式，还需要更新SVG文本的类
+                if (drawingModeEnabled) {
+                    const textPath = prevLine.querySelector('.apple-drawing-text');
+                    if (textPath) {
+                        textPath.classList.add('prev');
+                    }
+                }
+            }
+        }
+        
+        // 设置后一行
+        if (newIndex < lyrics.length - 1) {
+            const nextLine = lyricsText.querySelector(`[data-index="${newIndex + 1}"]`);
+            if (nextLine) {
+                nextLine.classList.add('next');
+                
+                // 如果是手绘模式，还需要更新SVG文本的类
+                if (drawingModeEnabled) {
+                    const textPath = nextLine.querySelector('.apple-drawing-text');
+                    if (textPath) {
+                        textPath.classList.add('next');
+                    }
+                }
+            }
+        }
     }
 
     // 初始化界面
@@ -355,6 +444,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 切换手绘模式
+    function toggleDrawingMode() {
+        drawingModeEnabled = !drawingModeEnabled;
+        
+        if (drawingModeEnabled) {
+            // 启用手绘模式
+            lyricsContainer.classList.add('drawing-style');
+            drawingModeToggle.innerHTML = '<i class="fas fa-font"></i>';
+            drawingModeToggle.title = '切换标准模式';
+        } else {
+            // 禁用手绘模式
+            lyricsContainer.classList.remove('drawing-style');
+            drawingModeToggle.innerHTML = '<i class="fas fa-paint-brush"></i>';
+            drawingModeToggle.title = '切换手绘模式';
+        }
+        
+        // 重新初始化歌词显示
+        initLyrics();
+        
+        // 如果已经显示歌词，更新当前歌词行
+        if (currentLyricIndex >= 0) {
+            updateLyricClasses(currentLyricIndex);
+        }
+    }
+
     // 窗口大小变化时重设Canvas
     window.addEventListener('resize', function() {
         setupCanvas();
@@ -402,6 +516,7 @@ document.addEventListener('DOMContentLoaded', function() {
     volumeSlider.addEventListener('change', setVolume);
     volumeSlider.addEventListener('input', setVolume);
     lyricsToggle.addEventListener('click', toggleLyrics);
+    drawingModeToggle.addEventListener('click', toggleDrawingMode);
 
     // 音频加载完成时更新总时长
     audio.addEventListener('loadeddata', function() {
