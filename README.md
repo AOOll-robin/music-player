@@ -1,6 +1,6 @@
 # 简易音乐播放器
 
-这是一个使用HTML、CSS和JavaScript构建的简单音乐播放器网页。
+这是一个使用HTML、CSS和JavaScript构建的简单音乐播放器网页。仅个人学习！！！
 
 ## 功能
 
